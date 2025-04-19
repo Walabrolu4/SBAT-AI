@@ -3,9 +3,15 @@ import { GridOverlay } from '../objects/grid_overlay';
 import { Unit, UnitState, UnitType } from '../objects/unit';
 import { MousePopup } from '../objects/mouse_popup';
 import {ElevationMap} from '../objects/elevation_map';
+import test from 'node:test';
+
+type Vector2 = Phaser.Math.Vector2;
+const Vector2 = Phaser.Math.Vector2;
+
 
 export class MainScene extends Phaser.Scene {
 
+  
   debugText !: Phaser.GameObjects.Text;
   mousePopup !: MousePopup;
   private elevationMap!: ElevationMap;
@@ -31,10 +37,11 @@ export class MainScene extends Phaser.Scene {
     const gameHeight = this.sys.game.config.height as number;
 
     this.mapImage = new Map(this, 0, 0, 'backgroundImage');
+    this.elevationMap = new ElevationMap(this,0,0,'heightImage');
 
-    const heightmapImage = this.textures.get('heightmap').getSourceImage() as HTMLImageElement;
-    this.elevationMap = new ElevationMap(heightmapImage);
-    this.add.image(0,0,'heightImage');
+    //const heightmapImage = this.textures.get('heightmap').getSourceImage() as HTMLImageElement;
+    //this.elevationMap = new ElevationMap(heightmapImage);
+    //this.add.image(0,0,'heightImage');
 
     this.mousePopup = new MousePopup(this);
 
@@ -45,7 +52,9 @@ export class MainScene extends Phaser.Scene {
     // Visual overlay
     const overlay = new GridOverlay(this, cols, rows, imageSize, imageSize);
     overlay.setPosition(0, 0);
-    const testUnit = new Unit(this, "test infantry", 100, 100, 'unit_infantry');
+
+    const testUnit = new Unit(this, this.elevationMap, "test infantry", 0, 0, 'unit_infantry');
+    testUnit.moveToLocation(new Vector2(500,300));
 
 
     this.debugText = this.add.text(10, 10, '', {

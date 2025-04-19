@@ -24,7 +24,7 @@ export class MousePopup extends Phaser.GameObjects.Container {
     const x = pointer.worldX;//.toFixed(0);
     const y = pointer.worldY;//.toFixed(0);
     const elevation = elevationMap.getElevation(x,y);
-    this.text.setText(`X: ${x}\nY: ${y}\n E: ${elevation}`);
+    this.text.setText(`X: ${x}\nY: ${y}\nE: ${elevation}`);
     this.setPosition(pointer.worldX + 10, pointer.worldY + 10);
   }
 }
