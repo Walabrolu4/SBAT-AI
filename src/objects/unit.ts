@@ -56,7 +56,7 @@ export class Unit extends Phaser.GameObjects.Container {
   }
 
   setPos(x: number, y: number): this {
-    super.setPosition(x, y); // Update the container's position
+    super.setPosition(x, y);
     if (this.pos) {
       this.pos.set(x, y);
     } else { console.log("Could not set internal position value :( "); }
