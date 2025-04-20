@@ -3,7 +3,7 @@ import { GridOverlay } from '../objects/grid_overlay';
 import { Unit, UnitState, UnitType } from '../objects/unit';
 import { MousePopup } from '../objects/mouse_popup';
 import {ElevationMap} from '../objects/elevation_map';
-import test from 'node:test';
+import { DebugBox } from '../objects/debug';
 
 type Vector2 = Phaser.Math.Vector2;
 const Vector2 = Phaser.Math.Vector2;
@@ -11,11 +11,10 @@ const Vector2 = Phaser.Math.Vector2;
 
 export class MainScene extends Phaser.Scene {
 
-  
-  debugText !: Phaser.GameObjects.Text;
   mousePopup !: MousePopup;
   private elevationMap!: ElevationMap;
   private mapImage!: Map;
+  private debugBox: DebugBox;
 
   constructor() {
     // Assign a unique key to this Scene
@@ -30,20 +29,14 @@ export class MainScene extends Phaser.Scene {
   }
 
   create() {
-
     console.log('MainScene created!');
 
-    const gameWidth = this.sys.game.config.width as number;
-    const gameHeight = this.sys.game.config.height as number;
+    //const gameWidth = this.sys.game.config.width as number;
+    //const gameHeight = this.sys.game.config.height as number;
 
+    //Setup Maps
     this.mapImage = new Map(this, 0, 0, 'backgroundImage');
     this.elevationMap = new ElevationMap(this,0,0,'heightImage');
-
-    //const heightmapImage = this.textures.get('heightmap').getSourceImage() as HTMLImageElement;
-    //this.elevationMap = new ElevationMap(heightmapImage);
-    //this.add.image(0,0,'heightImage');
-
-    this.mousePopup = new MousePopup(this);
 
     const imageSize = 1280;
     const cols = 16;
@@ -53,15 +46,13 @@ export class MainScene extends Phaser.Scene {
     const overlay = new GridOverlay(this, cols, rows, imageSize, imageSize);
     overlay.setPosition(0, 0);
 
+    //Debug and mouse popup
+    this.debugBox = new DebugBox(this);
+    this.mousePopup = new MousePopup(this);
+
+    //Test unit for testing
     const testUnit = new Unit(this, this.elevationMap, "test infantry", 0, 0, 'unit_infantry');
     testUnit.moveToLocation(new Vector2(500,300));
-
-
-    this.debugText = this.add.text(10, 10, '', {
-      fontSize: '16px',
-      color: '#ffffff',
-      backgroundColor: '#000000'
-    });
 
     console.log("Everything is initalized!");
   }
@@ -69,6 +60,6 @@ export class MainScene extends Phaser.Scene {
 
   update(time:number,delta:number) {
     this.mousePopup.update(this.elevationMap);
-    this.debugText.setText(`Time: ${time.toFixed(0)}\nDelta: ${delta.toFixed(2)}`);
+    this.debugBox.setText(`Time: ${time.toFixed(0)}\nDelta: ${delta.toFixed(2)}`);
   }
 }

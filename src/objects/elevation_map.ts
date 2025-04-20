@@ -1,5 +1,5 @@
 import Phaser from 'phaser'
-import { mapNumber } from './utils';
+import { mapNumber } from './utils/utils';
 
 export class ElevationMap extends Phaser.GameObjects.Image {
   key !: string ;

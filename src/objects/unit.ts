@@ -1,41 +1,47 @@
 import Phaser from 'phaser'
 import { ElevationMap } from './elevation_map';
-import { mapNumber } from './utils';
+import { mapNumber } from './utils/utils';
 //import {Vector2 , Vec2} from './vec2'
 
 type Vector2 = Phaser.Math.Vector2;
 const Vector2 = Phaser.Math.Vector2;
 
 export class Unit extends Phaser.GameObjects.Container {
+  // CLASS DATA //
   private image: Phaser.GameObjects.Image;
-  private pos: Phaser.Math.Vector2;
   private name: string
+  private unitType: UnitType;
+
   private morale: number;
   private curAmmo: number;
-  private unitType: UnitType;
+
+  private pos: Phaser.Math.Vector2;
+
   private state: UnitState;
   private stateText: Phaser.GameObjects.Text;
   private stats: UnitStats;
-
   private targetPos?: Vector2;
   private elevationMap?: ElevationMap;
   private currentElevation: number;
   private movementLine: Phaser.GameObjects.Line | null = null;
 
+
   constructor(scene: Phaser.Scene, elevationMap: ElevationMap, unitName: string = "new unit", x: number = 0, y: number = 0, texture_key?: string, unitType: UnitType = UnitType.infantry) {
     super(scene, x, y);
 
+    //Basic Initalization
     this.scene.add.existing(this);
-    this.name = unitName
 
-    this.pos = new Phaser.Math.Vector2(x, y);
-
+    //Add image
     if (texture_key) {
       this.image = scene.add.image(0, 0, texture_key);
       this.add(this.image);
       this.setSize(this.image.width, this.image.height);
     } else { console.warn("unit " + this.name + "has been created with no image") };
 
+    //Set basic Variables
+    this.name = unitName
+    this.pos = new Phaser.Math.Vector2(x, y);
     this.state = UnitState.idling;
     this.unitType = unitType;
     this.stats = UnitStatMap[this.unitType];
@@ -44,11 +50,19 @@ export class Unit extends Phaser.GameObjects.Container {
 
     this.elevationMap = elevationMap;
     this.currentElevation = this.elevationMap.getElevation(this.pos.x, this.pos.y);
+    
     this.initializeStateText();
-
     this.setInteractive();
 
+
+    scene.input.on('pointerdown',(pointer:Phaser.Input.Pointer) => { this.moveToLocationMouseDebug(pointer.x,pointer.y);});
+
     console.log("Unit " + this.name + " has been created");
+  }
+
+  moveToLocationMouseDebug(x:number,y:number){
+    console.log("moving...");
+    this.moveToLocation(new Vector2(x,y));
   }
 
   getPos(): Vector2 {
@@ -69,15 +83,25 @@ export class Unit extends Phaser.GameObjects.Container {
   }
 
   preUpdate(time: number, delta: number): void {
+
+    //Handle move state
+    if(this.state == UnitState.moving){ this.handleMoveState(time,delta);}
+    else{ return;}
+    
+  }
+
+  handleMoveState(time:number,delta:number){
     if (this.state !== UnitState.moving) return;
     if (!this.targetPos) console.error(`${this.name} wants to move but NO target location is set!?`);
     if (!this.elevationMap) console.error(`${this.name} wants to move but has no refrence to the elevation map!? WTF??`);
 
+    //Calculate some basic variables
     const current = this.getPos();
     const direction = this.targetPos.clone().subtract(current);
     const distance = direction.length();
     this.updateStateText();
 
+    //Go back to idle if we are close enough to the pos and "teleport" us there
     if (distance < 1) {
       this.setPos(this.targetPos.x, this.targetPos.y);
       this.state = UnitState.idling;
@@ -89,10 +113,10 @@ export class Unit extends Phaser.GameObjects.Container {
         this.movementLine.destroy();
         this.movementLine = null;
       }
-
       return;
     }
 
+    //Calculate the elevation based speed to take.
     const baseSpeed = this.stats.speed;
     direction.normalize();
 
@@ -107,10 +131,12 @@ export class Unit extends Phaser.GameObjects.Container {
     const speedMultiplier = mapNumber(Math.abs(slope), 0, 10, 1, 0.01);
     const effectiveSpeed = baseSpeed * speedMultiplier
 
+    //Calc new position and move us there
     const moveDelta = direction.clone().scale(effectiveSpeed * delta * 0.01);
     const newPos = current.clone().add(moveDelta);
     this.setPos(newPos.x, newPos.y);
 
+    //Draw a line to show the movement
     if (this.movementLine) {
       this.movementLine.destroy();
     }
@@ -125,6 +151,7 @@ export class Unit extends Phaser.GameObjects.Container {
     this.movementLine.setLineWidth(2);
   }
 
+  //Handle the displaying of the "state text"
   initializeStateText() {
     this.stateText = this.scene.add.text(this.pos.x, this.pos.y, '', {
       fontSize: '14px',
@@ -167,7 +194,7 @@ interface UnitStats {
 
 const UnitStatMap: Record<UnitType, UnitStats> = {
   [UnitType.hq]: { maxHP: 1000, attack: 0, speed: 0, maxAmmo: 0 },
-  [UnitType.infantry]: { maxHP: 100, attack: 10, speed: 2, maxAmmo: 50 },
-  [UnitType.air]: { maxHP: 200, attack: 20, speed: 4, maxAmmo: 25 },
-  [UnitType.tank]: { maxHP: 500, attack: 50, speed: 1, maxAmmo: 5 }
+  [UnitType.infantry]: { maxHP: 100, attack: 10, speed: 1, maxAmmo: 50 },
+  [UnitType.air]: { maxHP: 200, attack: 20, speed: 3, maxAmmo: 25 },
+  [UnitType.tank]: { maxHP: 500, attack: 50, speed: 0.3, maxAmmo: 5 }
 };

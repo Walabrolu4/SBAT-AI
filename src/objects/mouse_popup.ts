@@ -1,6 +1,8 @@
 import { ElevationMap } from "./elevation_map";
 export class MousePopup extends Phaser.GameObjects.Container {
   private text: Phaser.GameObjects.Text;
+  private shiftKey;
+  private display: boolean = false;
 
   constructor(scene: Phaser.Scene) {
     super(scene, 0, 0);
@@ -17,14 +19,33 @@ export class MousePopup extends Phaser.GameObjects.Container {
     this.setDepth(1000);
     scene.add.existing(this);
 
+    this.shiftKey = scene.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
+    this.shiftKey.on('down',()=>this.displayOn());
+    this.shiftKey.on('up',()=>this.displayOff());
+  }
+
+  displayOn(){
+    console.log("toolTip On");
+    this.display = true;
+  }
+  displayOff(){
+    console.log("toolTip Off");
+    this.display = false;
   }
 
   update(elevationMap:ElevationMap){
-    const pointer = this.scene.input.activePointer;
-    const x = pointer.worldX;//.toFixed(0);
-    const y = pointer.worldY;//.toFixed(0);
-    const elevation = elevationMap.getElevation(x,y);
-    this.text.setText(`X: ${x}\nY: ${y}\nE: ${elevation}`);
-    this.setPosition(pointer.worldX + 10, pointer.worldY + 10);
+    if(this.display)
+    {
+      this.text.visible = true;
+      const pointer = this.scene.input.activePointer;
+      const x = pointer.worldX;//.toFixed(0);
+      const y = pointer.worldY;//.toFixed(0);
+      const elevation = elevationMap.getElevation(x,y);
+      this.text.setText(`X: ${x}\nY: ${y}\nE: ${elevation}`);
+      this.setPosition(pointer.worldX + 10, pointer.worldY + 10);
+    }
+    else{
+      this.text.visible = false;
+    }
   }
 }
