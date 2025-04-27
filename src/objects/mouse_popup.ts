@@ -14,7 +14,6 @@ export class MousePopup extends Phaser.GameObjects.Container {
       padding: { x: 4, y: 2 }
     });
 
-
     this.add(this.text);
     this.setDepth(1000);
     scene.add.existing(this);
@@ -38,8 +37,8 @@ export class MousePopup extends Phaser.GameObjects.Container {
     {
       this.text.visible = true;
       const pointer = this.scene.input.activePointer;
-      const x = pointer.worldX;//.toFixed(0);
-      const y = pointer.worldY;//.toFixed(0);
+      const x = pointer.worldX;
+      const y = pointer.worldY;
       const elevation = elevationMap.getElevation(x,y);
       this.text.setText(`X: ${x}\nY: ${y}\nE: ${elevation}`);
       this.setPosition(pointer.worldX + 10, pointer.worldY + 10);

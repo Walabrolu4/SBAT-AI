@@ -4,6 +4,7 @@ import { Unit, UnitState, UnitType } from '../objects/unit';
 import { MousePopup } from '../objects/mouse_popup';
 import {ElevationMap} from '../objects/elevation_map';
 import { DebugBox } from '../objects/debug';
+import { UnitManager } from '../objects/unit_manager';
 
 type Vector2 = Phaser.Math.Vector2;
 const Vector2 = Phaser.Math.Vector2;
@@ -15,6 +16,8 @@ export class MainScene extends Phaser.Scene {
   private elevationMap!: ElevationMap;
   private mapImage!: Map;
   private debugBox: DebugBox;
+  private unitManager:UnitManager;
+  
 
   constructor() {
     // Assign a unique key to this Scene
@@ -29,6 +32,7 @@ export class MainScene extends Phaser.Scene {
   }
 
   create() {
+    this.input.mouse.disableContextMenu();
     console.log('MainScene created!');
 
     //const gameWidth = this.sys.game.config.width as number;
@@ -50,10 +54,17 @@ export class MainScene extends Phaser.Scene {
     this.debugBox = new DebugBox(this);
     this.mousePopup = new MousePopup(this);
 
+    //Setup Unit Manager
+    this.unitManager = new UnitManager(this);
+
     //Test unit for testing
     const testUnit = new Unit(this, this.elevationMap, "test infantry", 0, 0, 'unit_infantry');
-    testUnit.moveToLocation(new Vector2(500,300));
+    //testUnit.moveToLocation(new Vector2(500,300));
+    this.unitManager.addUnit(testUnit);
 
+    const testUnit2 = new Unit(this, this.elevationMap, "test infantry", 100, 100, 'unit_infantry');
+    //testUnit2.moveToLocation(new Vector2(200,500));
+    this.unitManager.addUnit(testUnit2);
     console.log("Everything is initalized!");
   }
 
