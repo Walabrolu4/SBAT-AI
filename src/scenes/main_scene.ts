@@ -58,7 +58,7 @@ export class MainScene extends Phaser.Scene {
     this.unitManager = new UnitManager(this);
 
     //Test unit for testing
-    const testUnit = new Unit(this, this.elevationMap, "test infantry", 0, 0, 'unit_infantry');
+    const testUnit = new Unit(this, this.elevationMap, "test infantry", 50, 50, 'unit_infantry');
     //testUnit.moveToLocation(new Vector2(500,300));
     this.unitManager.addUnit(testUnit);
 

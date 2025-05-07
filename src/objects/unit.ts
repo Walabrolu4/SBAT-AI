@@ -12,14 +12,12 @@ export class Unit extends Phaser.GameObjects.Container {
   private name: string;
   private unitType: UnitType;
 
-  private morale: number;
-  private curAmmo: number;
-
   private pos: Phaser.Math.Vector2;
 
   private state: UnitState;
   private stateText: Phaser.GameObjects.Text;
   private stats: UnitStats;
+  private currentFuel : number;
   private targetPos?: Vector2;
   private movementQueue: Vector2[] = [];
   private elevationMap?: ElevationMap;
@@ -56,8 +54,7 @@ export class Unit extends Phaser.GameObjects.Container {
     this.state = UnitState.idling;
     this.unitType = unitType;
     this.stats = UnitStatMap[this.unitType];
-    this.curAmmo = this.stats.maxAmmo;
-    this.morale = 100;
+    this.currentFuel = this.stats.fuel;
 
     this.elevationMap = elevationMap;
     this.currentElevation = this.elevationMap.getElevation(
@@ -66,6 +63,7 @@ export class Unit extends Phaser.GameObjects.Container {
     );
 
     this.initializeStateText();
+    this.updateStateText();
     this.setInteractive();
 
     console.log("Unit " + this.name + " has been created");
@@ -86,7 +84,6 @@ export class Unit extends Phaser.GameObjects.Container {
   }
 
   queueMoveToLocation(target:Vector2, clearQueue : boolean = false):void{
-
     if(clearQueue){
       this.movementQueue = [];
     }
@@ -143,6 +140,8 @@ export class Unit extends Phaser.GameObjects.Container {
     const current = this.getPos();
     const direction = this.targetPos.clone().subtract(current);
     const distance = direction.length();
+    const baseFuelConsumption = 0.1;
+
     this.updateStateText();
 
     //Go back to idle if we are close enough to the pos and "teleport" us there
@@ -168,15 +167,31 @@ export class Unit extends Phaser.GameObjects.Container {
     const nextElevation = this.elevationMap.getElevation(nextPos.x, nextPos.y);
 
     const slope = nextElevation - currentElevation;
-
+    const slopeFactor = 1 + Math.abs(slope) * 0.2;
+  
     const speedMultiplier = mapNumber(Math.abs(slope), 0, 10, 1, 0.01);
     const effectiveSpeed = baseSpeed * speedMultiplier;
 
     //Calc new position and move us there
     const moveDelta = direction.clone().scale(effectiveSpeed * delta * 0.01);
+    const fuelConsumption = baseFuelConsumption * moveDelta.length() * slopeFactor;
+    this.currentFuel -= fuelConsumption;
+
     const newPos = current.clone().add(moveDelta);
     this.setPos(newPos.x, newPos.y);
 
+    if(this.currentFuel <= 0){
+      this.currentFuel = 0;
+      this.state = UnitState.idling;
+      this.targetPos = undefined;
+      console.log(`${this.name} has run out of fuel!!`);
+
+      this.movementQueue = [];
+      if (this.movementLine){
+        this.movementLine.destroy();
+        this.movementLine= null;
+      }
+    }
     //Draw a line to show the movement
     this.drawMovementPath();
     
@@ -241,12 +256,11 @@ export class Unit extends Phaser.GameObjects.Container {
       fontSize: "14px",
       color: "#ffffff",
       backgroundColor: "#000000",
-      //padding: { x: 4, y: 2 }
     });
   }
   updateStateText() {
     this.stateText.setPosition(this.pos.x - 25, this.pos.y - 30);
-    this.stateText.setText(`${UnitState[this.state]}`);
+    this.stateText.setText(`${UnitState[this.state]} \nfuel:${Math.floor(this.currentFuel)}`);
   }
 
   public getName():string{
@@ -258,6 +272,7 @@ export class Unit extends Phaser.GameObjects.Container {
 
 enum UnitState {
   idling,
+  outOfFuel,
   moving,
   attacking,
   defending,
@@ -273,14 +288,13 @@ enum UnitType {
 
 interface UnitStats {
   maxHP: number;
-  attack: number;
   speed: number;
-  maxAmmo: number;
+  fuel: number,
 }
 
 const UnitStatMap: Record<UnitType, UnitStats> = {
-  [UnitType.hq]: { maxHP: 1000, attack: 0, speed: 0, maxAmmo: 0 },
-  [UnitType.infantry]: { maxHP: 100, attack: 10, speed: 1, maxAmmo: 50 },
-  [UnitType.air]: { maxHP: 200, attack: 20, speed: 3, maxAmmo: 25 },
-  [UnitType.tank]: { maxHP: 500, attack: 50, speed: 0.3, maxAmmo: 5 },
+  [UnitType.hq]: { maxHP: 1000, speed: 0, fuel:0 },
+  [UnitType.infantry]: { maxHP: 100, speed: 1,fuel:100},
+  [UnitType.air]: { maxHP: 200,  speed: 3,fuel:80},
+  [UnitType.tank]: { maxHP: 500,  speed: 0.3,fuel:180},
 };
