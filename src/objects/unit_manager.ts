@@ -70,4 +70,8 @@ export class UnitManager {
   addUnit(unit : Unit){
     this.units.push(unit);
   }
+
+  public getAllUnits(): Unit[] {
+    return this.units;
+  }
 }

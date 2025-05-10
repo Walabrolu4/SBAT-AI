@@ -5,6 +5,7 @@ import { MousePopup } from '../objects/mouse_popup';
 import {ElevationMap} from '../objects/elevation_map';
 import { DebugBox } from '../objects/debug';
 import { UnitManager } from '../objects/unit_manager';
+import { GameState } from '../objects/utils/game_state';
 
 type Vector2 = Phaser.Math.Vector2;
 const Vector2 = Phaser.Math.Vector2;
@@ -13,6 +14,7 @@ const Vector2 = Phaser.Math.Vector2;
 export class MainScene extends Phaser.Scene {
 
   mousePopup !: MousePopup;
+  private gameState:  GameState;
   private elevationMap!: ElevationMap;
   private mapImage!: Map;
   private debugBox: DebugBox;
@@ -35,8 +37,8 @@ export class MainScene extends Phaser.Scene {
     this.input.mouse.disableContextMenu();
     console.log('MainScene created!');
 
-    //const gameWidth = this.sys.game.config.width as number;
-    //const gameHeight = this.sys.game.config.height as number;
+    const gameWidth = this.sys.game.config.width as number;
+    const gameHeight = this.sys.game.config.height as number;
 
     //Setup Maps
     this.mapImage = new Map(this, 0, 0, 'backgroundImage');
@@ -66,6 +68,10 @@ export class MainScene extends Phaser.Scene {
     //testUnit2.moveToLocation(new Vector2(200,500));
     this.unitManager.addUnit(testUnit2);
     console.log("Everything is initalized!");
+
+
+    this.gameState = new GameState(this);
+    this.gameState.setElevationData(this.elevationMap,gameWidth,gameHeight);
   }
 
 

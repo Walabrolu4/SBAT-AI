@@ -292,6 +292,12 @@ interface UnitStats {
   fuel: number,
 }
 
+interface unitBasicInfo{
+  name: string,
+  pos: Vector2,
+  fuel: number
+}
+
 const UnitStatMap: Record<UnitType, UnitStats> = {
   [UnitType.hq]: { maxHP: 1000, speed: 0, fuel:0 },
   [UnitType.infantry]: { maxHP: 100, speed: 1,fuel:100},
