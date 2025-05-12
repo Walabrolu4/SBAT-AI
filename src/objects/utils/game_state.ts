@@ -9,18 +9,21 @@ export class GameState {
     this.scene = scene;
   }
 
-  public getAllUnitPositions(units:Unit[]){
+  public getAllUnitData(units:Unit[]){
     let unitPositions: UnitPos[]  = [];
     units.forEach(unit => {
       let pos = unit.getPos();
       let name = unit.getName();
-
+      let fuel = unit.getFuel();
+      let id = unit.getId();
       unitPositions.push({
+        unitId: id,
         unitName: name,
         position: pos.clone(),
+        currentFuel: fuel,
       })
     });
-    console.log(unitPositions);
+    //console.log(unitPositions);
     return unitPositions;
   }
 
@@ -31,6 +34,6 @@ export class GameState {
         this.elevationMapInfo[h][w]=map.getElevation(w,h);
       }
     }
-    console.log(this.elevationMapInfo)
+    //console.log(this.elevationMapInfo)
   }
 }

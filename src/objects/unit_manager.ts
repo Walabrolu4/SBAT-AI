@@ -7,6 +7,7 @@ export class UnitManager {
   private shiftKey;
   private shiftMod:boolean = false;
   private scene: Phaser.Scene;
+  private maxId:number =0;
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -68,10 +69,24 @@ export class UnitManager {
   }
 
   addUnit(unit : Unit){
+    unit.setId(this.maxId);
     this.units.push(unit);
+    this.maxId += 1;
   }
 
   public getAllUnits(): Unit[] {
     return this.units;
+  }
+
+  public moveUnitTo(unitId:number, x:number,y:number){
+    const unitToMove = this.units.find((unit: Unit) => unit.getId() === unitId);
+    if (unitToMove == undefined){console.log(`No unit with id ${unitId} is found`); return;}
+    unitToMove.queueMoveToLocation(new Phaser.Math.Vector2(x,y),true);
+  }
+
+  public moveUnitToQueue(unitId:number, x:number,y:number){
+    const unitToMove = this.units.find((unit: Unit) => unit.getId() === unitId);
+    if (unitToMove == undefined){console.log(`No unit with id ${unitId} is found`); return;}
+    unitToMove.queueMoveToLocation(new Phaser.Math.Vector2(x,y),false);
   }
 }

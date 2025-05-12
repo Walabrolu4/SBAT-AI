@@ -13,11 +13,11 @@ export class Unit extends Phaser.GameObjects.Container {
   private unitType: UnitType;
 
   private pos: Phaser.Math.Vector2;
-
+  private id:number = 0;
   private state: UnitState;
   private stateText: Phaser.GameObjects.Text;
   private stats: UnitStats;
-  private currentFuel : number;
+  private currentFuel: number;
   private targetPos?: Vector2;
   private movementQueue: Vector2[] = [];
   private elevationMap?: ElevationMap;
@@ -83,22 +83,29 @@ export class Unit extends Phaser.GameObjects.Container {
     return this;
   }
 
-  queueMoveToLocation(target:Vector2, clearQueue : boolean = false):void{
-    if(clearQueue){
+  public getId():number{
+    return this.id;
+  }
+  public setId(id :number){
+    this.id = id;
+  }
+
+  queueMoveToLocation(target: Vector2, clearQueue: boolean = false): void {
+    if (clearQueue) {
       this.movementQueue = [];
     }
     this.movementQueue.push(target.clone());
     console.log(`${this.name} is queing a move to (${target.x},${target.y})`);
-    if(this.state !== UnitState.moving || clearQueue){
+    if (this.state !== UnitState.moving || clearQueue) {
       this.startNextMove();
     }
   }
 
-  private startNextMove(): void{
-    if (this.movementQueue.length == 0 ){
+  private startNextMove(): void {
+    if (this.movementQueue.length == 0) {
       this.state = UnitState.idling;
       this.targetPos = undefined;
-      if(this.movementLine){
+      if (this.movementLine) {
         this.movementLine?.destroy();
         this.movementLine = null;
       }
@@ -107,7 +114,9 @@ export class Unit extends Phaser.GameObjects.Container {
 
     this.targetPos = this.movementQueue.shift();
     this.state = UnitState.moving;
-    console.log(`${this.name} is moving to (${this.targetPos.x},${this.targetPos.y})`);
+    console.log(
+      `${this.name} is moving to (${this.targetPos.x},${this.targetPos.y})`
+    );
   }
 
   moveToLocation(target: Vector2): void {
@@ -146,7 +155,7 @@ export class Unit extends Phaser.GameObjects.Container {
 
     //Go back to idle if we are close enough to the pos and "teleport" us there
     if (distance < 1) {
-      this.setPos(this.targetPos.x,this.targetPos.y);
+      this.setPos(this.targetPos.x, this.targetPos.y);
       console.log(`${this.name} reached waypoint`);
       this.startNextMove();
       this.updateStateText();
@@ -168,58 +177,62 @@ export class Unit extends Phaser.GameObjects.Container {
 
     const slope = nextElevation - currentElevation;
     const slopeFactor = 1 + Math.abs(slope) * 0.2;
-  
+
     const speedMultiplier = mapNumber(Math.abs(slope), 0, 10, 1, 0.01);
     const effectiveSpeed = baseSpeed * speedMultiplier;
 
     //Calc new position and move us there
     const moveDelta = direction.clone().scale(effectiveSpeed * delta * 0.01);
-    const fuelConsumption = baseFuelConsumption * moveDelta.length() * slopeFactor;
+    const fuelConsumption =
+      baseFuelConsumption * moveDelta.length() * slopeFactor;
     this.currentFuel -= fuelConsumption;
 
     const newPos = current.clone().add(moveDelta);
     this.setPos(newPos.x, newPos.y);
 
-    if(this.currentFuel <= 0){
+    if (this.currentFuel <= 0) {
       this.currentFuel = 0;
       this.state = UnitState.idling;
       this.targetPos = undefined;
       console.log(`${this.name} has run out of fuel!!`);
 
       this.movementQueue = [];
-      if (this.movementLine){
+      if (this.movementLine) {
         this.movementLine.destroy();
-        this.movementLine= null;
+        this.movementLine = null;
       }
     }
     //Draw a line to show the movement
     this.drawMovementPath();
-    
   }
 
-  drawMovementPath(): void{
+  drawMovementPath(): void {
     //clear old path
     if (this.movementLine) {
       this.movementLine.destroy();
       this.movementLine = null;
     }
 
-    if (!this.targetPos && (!this.movementQueue || this.movementQueue.length === 0)) return;
+    if (
+      !this.targetPos &&
+      (!this.movementQueue || this.movementQueue.length === 0)
+    )
+      return;
 
     //create new graphics object
     const graphics = this.scene.add.graphics();
-    graphics.lineStyle(2, 0xff0000,1);
+    graphics.lineStyle(2, 0xff0000, 1);
 
     //Start new path
     graphics.beginPath();
-    graphics.moveTo(0,0);
+    graphics.moveTo(0, 0);
 
     //draw for each queued point
-    if(this.targetPos){
-      graphics.lineTo(this.targetPos.x-this.x,this.targetPos.y-this.y);
+    if (this.targetPos) {
+      graphics.lineTo(this.targetPos.x - this.x, this.targetPos.y - this.y);
     }
-    for(const point of this.movementQueue){
-      graphics.lineTo(point.x-this.x,point.y-this.y);
+    for (const point of this.movementQueue) {
+      graphics.lineTo(point.x - this.x, point.y - this.y);
     }
 
     graphics.strokePath();
@@ -230,21 +243,24 @@ export class Unit extends Phaser.GameObjects.Container {
     this.movementLine = graphics;
   }
 
-  public highlight(highlight : boolean){
-    if(highlight){
-      if(this.border){
+  public highlight(highlight: boolean) {
+    if (highlight) {
+      if (this.border) {
         this.border.destroy();
       }
 
       this.border = this.scene.add.graphics();
-      this.border.lineStyle(2,0xffff00);
-      this.border.strokeRect(-this.width/2,-this.height/2,this.width,this.height);
+      this.border.lineStyle(2, 0xffff00);
+      this.border.strokeRect(
+        -this.width / 2,
+        -this.height / 2,
+        this.width,
+        this.height
+      );
       this.add(this.border);
       this.bringToTop(this.border);
-    }
-
-    else{
-      if(this.border){
+    } else {
+      if (this.border) {
         this.border.destroy();
         this.border = null;
       }
@@ -260,11 +276,66 @@ export class Unit extends Phaser.GameObjects.Container {
   }
   updateStateText() {
     this.stateText.setPosition(this.pos.x - 25, this.pos.y - 30);
-    this.stateText.setText(`${UnitState[this.state]} \nfuel:${Math.floor(this.currentFuel)}`);
+    this.stateText.setText(
+      `${UnitState[this.state]} \nfuel:${Math.floor(this.currentFuel)}`
+    );
   }
 
-  public getName():string{
+  public getName(): string {
     return this.name;
+  }
+
+  public getFuel(): number {
+    return this.currentFuel;
+  }
+
+  estimateFuelUsageTo(target: Vector2): number {
+    if (!this.elevationMap) {
+      console.warn(`${this.name} has no elevation map!`);
+      return 0;
+    }
+
+    const current = this.getPos().clone();
+    const direction = target.clone().subtract(current);
+    const distance = direction.length();
+
+    if (distance === 0) return 0;
+
+    direction.normalize();
+    const baseFuelConsumption = 0.1;
+    const baseSpeed = this.stats.speed;
+
+    let totalFuel = 0;
+    let steps = Math.ceil(distance); // simulate in 1px steps
+    let simPos = current.clone();
+
+    for (let i = 0; i < steps; i++) {
+      const nextPos = simPos.clone().add(direction);
+      const currentElevation = this.elevationMap.getElevation(
+        simPos.x,
+        simPos.y
+      );
+      const nextElevation = this.elevationMap.getElevation(
+        nextPos.x,
+        nextPos.y
+      );
+
+      const slope = nextElevation - currentElevation;
+      const slopeFactor = 1 + Math.abs(slope) * 0.2;
+
+      const speedMultiplier = mapNumber(Math.abs(slope), 0, 10, 1, 0.01);
+      const effectiveSpeed = baseSpeed * speedMultiplier;
+
+      const moveDistance = 1; // simulating per-pixel
+      const moveDelta = direction.clone().scale(moveDistance);
+
+      const fuelUsed = baseFuelConsumption * moveDelta.length() * slopeFactor;
+      totalFuel += fuelUsed;
+
+      simPos.add(moveDelta);
+    }
+
+    return totalFuel;
   }
 }
 
@@ -289,18 +360,18 @@ enum UnitType {
 interface UnitStats {
   maxHP: number;
   speed: number;
-  fuel: number,
+  fuel: number;
 }
 
-interface unitBasicInfo{
-  name: string,
-  pos: Vector2,
-  fuel: number
+interface unitBasicInfo {
+  name: string;
+  pos: Vector2;
+  fuel: number;
 }
 
 const UnitStatMap: Record<UnitType, UnitStats> = {
-  [UnitType.hq]: { maxHP: 1000, speed: 0, fuel:0 },
-  [UnitType.infantry]: { maxHP: 100, speed: 1,fuel:100},
-  [UnitType.air]: { maxHP: 200,  speed: 3,fuel:80},
-  [UnitType.tank]: { maxHP: 500,  speed: 0.3,fuel:180},
+  [UnitType.hq]: { maxHP: 1000, speed: 0, fuel: 0 },
+  [UnitType.infantry]: { maxHP: 100, speed: 1, fuel: 100 },
+  [UnitType.air]: { maxHP: 200, speed: 3, fuel: 80 },
+  [UnitType.tank]: { maxHP: 500, speed: 0.3, fuel: 180 },
 };

@@ -61,7 +61,8 @@ export class MainScene extends Phaser.Scene {
 
     //Test unit for testing
     const testUnit = new Unit(this, this.elevationMap, "test infantry", 50, 50, 'unit_infantry');
-    //testUnit.moveToLocation(new Vector2(500,300));
+    console.log(testUnit.estimateFuelUsageTo(new Vector2(500,300)));
+    testUnit.moveToLocation(new Vector2(500,300));
     this.unitManager.addUnit(testUnit);
 
     const testUnit2 = new Unit(this, this.elevationMap, "test infantry", 100, 100, 'unit_infantry');
@@ -73,7 +74,7 @@ export class MainScene extends Phaser.Scene {
     //GameStateManager
     this.gameState = new GameState(this);
     this.gameState.getElevationData(this.elevationMap,gameWidth,gameHeight);
-    this.gameState.getAllUnitPositions(this.unitManager.getAllUnits());
+    this.gameState.getAllUnitData(this.unitManager.getAllUnits());
   }
 
 

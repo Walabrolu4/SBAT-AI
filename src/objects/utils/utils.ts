@@ -9,6 +9,8 @@ export function mapNumber(input: number, from_min: number, from_max: number, to_
 }
 
 export type UnitPos = {
+  unitId:number,
   unitName:string,
   position : Phaser.Math.Vector2
+  currentFuel: number;
 }
