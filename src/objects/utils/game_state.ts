@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { ElevationMap } from "../elevation_map";
 import { Unit } from "../unit";
-
+import { UnitPos } from "./utils";
 export class GameState {
   scene: Phaser.Scene;
   elevationMapInfo: number[][] = [];
@@ -10,10 +10,21 @@ export class GameState {
   }
 
   public getAllUnitPositions(units:Unit[]){
+    let unitPositions: UnitPos[]  = [];
+    units.forEach(unit => {
+      let pos = unit.getPos();
+      let name = unit.getName();
 
+      unitPositions.push({
+        unitName: name,
+        position: pos.clone(),
+      })
+    });
+    console.log(unitPositions);
+    return unitPositions;
   }
 
-  public setElevationData(map: ElevationMap, width: number, height: number) {
+  public getElevationData(map: ElevationMap, width: number, height: number) {
     for(let h =0 ; h<height; h++){
       this.elevationMapInfo[h] = [];
       for(let w=0; w<width; w++){

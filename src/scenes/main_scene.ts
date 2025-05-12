@@ -70,8 +70,10 @@ export class MainScene extends Phaser.Scene {
     console.log("Everything is initalized!");
 
 
+    //GameStateManager
     this.gameState = new GameState(this);
-    this.gameState.setElevationData(this.elevationMap,gameWidth,gameHeight);
+    this.gameState.getElevationData(this.elevationMap,gameWidth,gameHeight);
+    this.gameState.getAllUnitPositions(this.unitManager.getAllUnits());
   }
 
 

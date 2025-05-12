@@ -1,7 +1,7 @@
 {
   "name": "llm_sbat",
   "version": "1.0.0",
-  "description": "",
+  "description": "LLM Sbat",
   "main": "index.js",
   "scripts": {
     "dev":"vite",
