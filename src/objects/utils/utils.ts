@@ -8,7 +8,7 @@ export function mapNumber(input: number, from_min: number, from_max: number, to_
   return y ;
 }
 
-export type UnitPos = {
+export type UnitData = {
   unitId:number,
   unitName:string,
   position : Phaser.Math.Vector2

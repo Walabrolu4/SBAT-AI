@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { ElevationMap } from "../elevation_map";
 import { Unit } from "../unit";
-import { UnitPos } from "./utils";
+import { UnitData } from "./utils";
 export class GameState {
   scene: Phaser.Scene;
   elevationMapInfo: number[][] = [];
@@ -10,7 +10,7 @@ export class GameState {
   }
 
   public getAllUnitData(units:Unit[]){
-    let unitPositions: UnitPos[]  = [];
+    let unitPositions: UnitData[]  = [];
     units.forEach(unit => {
       let pos = unit.getPos();
       let name = unit.getName();
