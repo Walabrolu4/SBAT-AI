@@ -4,7 +4,6 @@ import { mapNumber } from "./utils/utils";
 //import {Vector2 , Vec2} from './vec2'
 
 type Vector2 = Phaser.Math.Vector2;
-const Vector2 = Phaser.Math.Vector2;
 
 export class Unit extends Phaser.GameObjects.Container {
   // CLASS DATA //

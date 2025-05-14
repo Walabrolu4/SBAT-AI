@@ -47,11 +47,11 @@ export class MousePopup extends Phaser.GameObjects.Container {
       const elevation = elevationMap.getElevation(x,y);
       this.text.setText(`X: ${x}\nY: ${y}\nE: ${elevation}`);
       if (x > this.width + 10){
-        console.log("triggerX!");
+        //console.log("triggerX!");
         offsetX = -100;
       }
       if(y < this.height + 10){
-        console.log("triggerX!");
+        //console.log("triggerX!");
         offsetY = -10
       }
       //this.setPosition(x + offsetX, y + offsetY);
