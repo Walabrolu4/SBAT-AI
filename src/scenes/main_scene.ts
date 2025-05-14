@@ -79,7 +79,7 @@ export class MainScene extends Phaser.Scene {
 
     //GameStateManager
     this.gameState = new GameState(this);
-    this.elevationMapInfo = this.gameState.getElevationData(this.elevationMap, gameWidth, gameHeight);
+    this.elevationMapInfo = this.gameState.getElevationData(this.elevationMap, /*gameWidth, gameHeight*/);
     this.unitPosList = this.gameState.getAllUnitData(this.unitManager.getAllUnits());
     console.log('MainScene instance:', (window as any).mainScene);
 

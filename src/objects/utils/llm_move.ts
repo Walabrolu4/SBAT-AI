@@ -2,6 +2,8 @@
 
 import Phaser from "phaser";
 import { MainScene } from "../../scenes/main_scene";
+import { UnitData } from "./utils";
+
 
 interface MoveCommand {
   unitId: number;
@@ -13,38 +15,27 @@ interface MoveCommand {
 export async function triggerLLMMove(mainScene: MainScene) {
   console.log("🧠 triggerLLMMove started");
 
-  // 1) Fetch everything from the scene
-  const elevationMap = mainScene.getElevationMapInfo();
-  const units = mainScene.getUnitPosList();
-  const unitManager = mainScene.getUnitManager();
+  // pull in UnitData[]
+  const units = mainScene.getUnitPosList();       
+  const unitManager = mainScene.getUnitManager(); 
 
-  // 2) Log each so you can see what's actually coming through
-  console.log("🔍 elevationMapInfo:", elevationMap);
   console.log("🔍 unitPosList:", units);
   console.log("🔍 unitManager:", unitManager);
 
-  // 3) Bail only if truly missing
-  if (elevationMap == null) {
-    console.error("❌ elevationMapInfo is null or undefined");
+  if (!Array.isArray(units)) {
+    console.error("❌ unitPosList is not an array!");
     return;
   }
-  if (units == null) {
-    console.error("❌ unitPosList is null or undefined");
-    return;
-  }
-  if (unitManager == null) {
+  if (!unitManager) {
     console.error("❌ unitManager is null or undefined");
     return;
   }
 
-  // 4) Tools for the fake LLM to play with
   const tools = {
     estimateFuel: (unitId: number, x: number, y: number): number => {
       const unit = unitManager.getAllUnits().find(u => u.getId() === unitId);
       if (!unit) throw new Error(`Invalid unit ID: ${unitId}`);
 
-      // in case your Unit needs the elevation map injected:
-      unit.setElevationMap(elevationMap);
       const fuel = unit.estimateFuelUsageTo(new Phaser.Math.Vector2(x, y));
       console.log(`⚡ [estimateFuel] unit ${unitId} → (${x},${y}) = ${fuel}`);
       return fuel;
@@ -61,13 +52,13 @@ export async function triggerLLMMove(mainScene: MainScene) {
     }
   };
 
-  // 5) Replace this with your real LLM call when ready
+  // use the correct UnitData fields in the fake planner
   const plan: MoveCommand[] = await fakeLLMPlan(units, tools);
 
-  // 6) Execute the plan
+  // execute
   for (const cmd of plan) {
     if (cmd.queue) tools.moveUnitToQueue(cmd.unitId, cmd.x, cmd.y);
-    else         tools.moveUnitTo(cmd.unitId, cmd.x, cmd.y);
+    else          tools.moveUnitTo(cmd.unitId, cmd.x, cmd.y);
   }
 
   console.log("✅ triggerLLMMove complete");
@@ -75,24 +66,23 @@ export async function triggerLLMMove(mainScene: MainScene) {
 
 
 async function fakeLLMPlan(
-  units: { id: number; x: number; y: number; name: string }[],
+  units: UnitData[],
   tools: {
     estimateFuel: (unitId: number, x: number, y: number) => number;
     moveUnitTo:    (unitId: number, x: number, y: number) => void;
-    moveUnitToQueue: (unitId: number, x: number, y: number) => void;
+    moveUnitToQueue:(unitId: number, x: number, y: number) => void;
   }
 ): Promise<MoveCommand[]> {
   const result: MoveCommand[] = [];
 
   for (const u of units) {
-    // simple test: try moving 20px right
-    const tx = u.x + 20;
-    const ty = u.y;
-    const fuel = tools.estimateFuel(u.id, tx, ty);
+    const { unitId, position } = u;
+    const tx = 400;  // example: 20px right
+    const ty = 400;
 
-    // only move if “fuel < 50”
+    const fuel = tools.estimateFuel(unitId, tx, ty);
     if (fuel < 50) {
-      result.push({ unitId: u.id, x: tx, y: ty });
+      result.push({ unitId, x: tx, y: ty });
     }
   }
 
