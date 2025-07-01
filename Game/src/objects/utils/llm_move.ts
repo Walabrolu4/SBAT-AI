@@ -10,61 +10,8 @@ interface MoveCommand {
   y: number;
   queue?: boolean;
 }
-/*
-export async function triggerLLMMove(mainScene: MainScene) {
-  console.log("🧠 triggerLLMMove started");
 
-  // pull in UnitData[]
-  const units = mainScene.getUnitPosList();
-  const unitManager = mainScene.getUnitManager();
-
-  console.log("🔍 unitPosList:", units);
-  console.log("🔍 unitManager:", unitManager);
-
-  if (!Array.isArray(units)) {
-    console.error("❌ unitPosList is not an array!");
-    return;
-  }
-  if (!unitManager) {
-    console.error("❌ unitManager is null or undefined");
-    return;
-  }
-
-  const tools = {
-    estimateFuel: (unitId: number, x: number, y: number): number => {
-      const unit = unitManager.getAllUnits().find(u => u.getId() === unitId);
-      if (!unit) throw new Error(`Invalid unit ID: ${unitId}`);
-
-      const fuel = unit.estimateFuelUsageTo(new Phaser.Math.Vector2(x, y));
-      console.log(`⚡ [estimateFuel] unit ${unitId} → (${x},${y}) = ${fuel}`);
-      return fuel;
-    },
-
-    moveUnitTo: (unitId: number, x: number, y: number): void => {
-      console.log(`🚀 [moveUnitTo] unit ${unitId} → (${x},${y})`);
-      unitManager.moveUnitTo(unitId, x, y);
-    },
-
-    moveUnitToQueue: (unitId: number, x: number, y: number): void => {
-      console.log(`📌 [moveUnitToQueue] unit ${unitId} → (${x},${y})`);
-      unitManager.moveUnitToQueue(unitId, x, y);
-    }
-  };
-
-  // use the correct UnitData fields in the fake planner
-  const plan: MoveCommand[] = await fakeLLMPlan(units, tools);
-
-  // execute
-  for (const cmd of plan) {
-    if (cmd.queue) tools.moveUnitToQueue(cmd.unitId, cmd.x, cmd.y);
-    else          tools.moveUnitTo(cmd.unitId, cmd.x, cmd.y);
-  }
-
-  console.log("✅ triggerLLMMove complete");
-}
-*/
-
-export async function triggerLLMMove(mainScene: MainScene) {
+export async function triggerLLMMoveOld(mainScene: MainScene) {
   console.log("🧠 triggerLLMMove started");
 
   const units = mainScene.getUnitPosList();
@@ -153,4 +100,68 @@ async function fakeLLMPlan(
   }
 
   return result;
+}
+
+export async function triggerLLMMove(mainScene: MainScene) {
+  console.log("🧠 TriggerLLMMove started");
+
+  const units = mainScene.getUnitPosList();
+  const unitManager = mainScene.getUnitManager();
+  const elevationMapInfo = mainScene.getElevationMapInfo();
+
+  console.log("🔎 unitPoslist:", units);
+  console.log("🔎 unitManager:", unitManager);
+  console.log("🔎 elevationMapInfo:", elevationMapInfo);
+
+  if (!Array.isArray(units)) {
+    console.error("units is not an array");
+    return;
+  }
+  if (!unitManager) {
+    console.error("unitManager is not defined");
+    return;
+  }
+
+  const tools = {
+    estimateFuel: (unitId: number, x: number, y: number): number => {
+      const unit = unitManager.getAllUnits().find((u) => u.getId() === unitId);
+      if (!unit) throw new Error(`Invalid unit ID: ${unitId}`);
+      return unit.estimateFuelUsageTo(new Phaser.Math.Vector2(x, y));
+    },
+    moveUnitTo: (unitId: number, x: number, y: number): void => {
+      console.log(`🚀 [moveUnitTo] unit ${unitId} → (${x},${y})`);
+      unitManager.moveUnitTo(unitId, x, y);
+    },
+    moveUnitToQueue: (unitId: number, x: number, y: number): void => {
+      console.log(`📌 [moveUnitToQueue] unit ${unitId} → (${x},${y})`);
+      unitManager.moveUnitToQueue(unitId, x, y);
+    },
+  };
+
+  const instruction =
+    "Move all units tactically toward the nearest enemy. Please use the estimateFuel function to see find the most optimal route."; // Customize or inject dynamically
+
+  try {
+    const response = await fetch("my ngrok url", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ units, instruction, elevationMapInfo }),
+    });
+
+    const result = await response.json();
+
+    if (!result.plan || !Array.isArray(result.plan)) {
+      console.error("LLM did not return a valid plan:", result);
+      return;
+    }
+    const plan: MoveCommand[] = result.plan;
+    for (const cmd of plan) {
+      if (cmd.queue) tools.moveUnitToQueue(cmd.unitId, cmd.x, cmd.y);
+      else tools.moveUnitTo(cmd.unitId, cmd.x, cmd.y);
+    }
+
+    console.log("LLM Move plan executed");
+  } catch (error) {
+    console.error("Error executing LLM Move plan:", error);
+  }
 }
