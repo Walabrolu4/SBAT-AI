@@ -7,7 +7,7 @@ import { DebugBox } from '../objects/debug';
 import { UnitManager } from '../objects/unit_manager';
 import { GameState } from '../objects/utils/game_state';
 import { UnitData } from '../objects/utils/utils';
-import { triggerLLMMove } from '../objects/utils/llm_move';
+//import { triggerLLMMove } from '../objects/utils/llm_move';
 
 type Vector2 = Phaser.Math.Vector2;
 const Vector2 = Phaser.Math.Vector2;
