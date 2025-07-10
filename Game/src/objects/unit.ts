@@ -176,6 +176,7 @@ export class Unit extends Phaser.GameObjects.Container {
 
     const slope = nextElevation - currentElevation;
     const slopeFactor = 1 + Math.abs(slope) * 0.2;
+    //const slopeFactor = 1 + Math.abs(slope) * 1 * (currentElevation * 20);//0.2;
 
     const speedMultiplier = mapNumber(Math.abs(slope), 0, 10, 1, 0.01);
     const effectiveSpeed = baseSpeed * speedMultiplier;
@@ -320,7 +321,10 @@ export class Unit extends Phaser.GameObjects.Container {
       );
 
       const slope = nextElevation - currentElevation;
+
+      //SLOPE FOR ESTIMATE FUEL
       const slopeFactor = 1 + Math.abs(slope) * 0.2;
+      //const slopeFactor = 1 + Math.abs(slope) * 1 *(currentElevation * 2);//0.2;
 
       const speedMultiplier = mapNumber(Math.abs(slope), 0, 10, 1, 0.01);
       const effectiveSpeed = baseSpeed * speedMultiplier;

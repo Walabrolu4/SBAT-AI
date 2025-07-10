@@ -103,7 +103,6 @@ export async function triggerLLMMove(mainScene: MainScene, numTestMoves: number 
 
     // Parse the JSON response from the LLM backend
     const result = await response.json();
-
     // Validate the structure of the LLM's response
     if (!result.plan || !Array.isArray(result.plan)) {
       console.error("❌ LLM did not return a valid plan (expected an array):", result);

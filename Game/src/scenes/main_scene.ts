@@ -32,8 +32,8 @@ export class MainScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image('backgroundImage', 'assets/map.png');
-    this.load.image('heightImage', 'assets/heightmap.png');
+    this.load.image('backgroundImage', 'assets/map_3.png');
+    this.load.image('heightImage', 'assets/heightmap_3.png');
     this.load.image('unit_infantry', 'assets/units/infantry.png');
   }
 
