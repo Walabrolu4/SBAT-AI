@@ -71,7 +71,7 @@ export class MainScene extends Phaser.Scene {
     //testUnit.moveToLocation(new Vector2(500,300));
     this.unitManager.addUnit(testUnit);
 
-    const testUnit2 = new Unit(this, this.elevationMap, "test infantry", 100, 100, 'unit_infantry');
+    const testUnit2 = new Unit(this, this.elevationMap, "test infantry", 60, 50, 'unit_infantry');
     //testUnit2.moveToLocation(new Vector2(200,500));
     this.unitManager.addUnit(testUnit2);
     console.log("Everything is initalized!");

@@ -19,7 +19,7 @@ interface UnitMovePlan {
  * @param mainScene The current Phaser MainScene instance.
  * @param numTestMoves The number of alternative paths the LLM should evaluate for each unit. Defaults to 5.
  */
-export async function triggerLLMMove(mainScene: MainScene, numTestMoves: number = 5) {
+export async function triggerLLMMove(mainScene: MainScene, numTestMoves: number = 2) {
   console.log("🧠 TriggerLLMMove started with numTestMoves:", numTestMoves);
 
   // Retrieve current unit data from the game scene
@@ -87,7 +87,7 @@ export async function triggerLLMMove(mainScene: MainScene, numTestMoves: number 
     // Make a POST request to your Colab-hosted Flask backend.
     // IMPORTANT: Replace "YOUR_NGROK_URL" with the actual public URL
     // printed in your Colab notebook after starting Ngrok.
-    const response = await fetch("https://b374-34-127-70-181.ngrok-free.app/llm/move", { // <--- UPDATE THIS LINE WITH YOUR NGROK URL
+    const response = await fetch("https://78dc887b0775.ngrok-free.app/llm/move", { // <--- UPDATE THIS LINE WITH YOUR NGROK URL
       method: "POST",
       headers: { "Content-Type": "application/json" },
       // Send the current units data, the instruction, the elevation map info,

@@ -148,7 +148,7 @@ export class Unit extends Phaser.GameObjects.Container {
     const current = this.getPos();
     const direction = this.targetPos.clone().subtract(current);
     const distance = direction.length();
-    const baseFuelConsumption = 0.1;
+    const baseFuelConsumption = 0.05;
 
     this.updateStateText();
 
@@ -175,7 +175,7 @@ export class Unit extends Phaser.GameObjects.Container {
     const nextElevation = this.elevationMap.getElevation(nextPos.x, nextPos.y);
 
     const slope = nextElevation - currentElevation;
-    const slopeFactor = 1 + Math.abs(slope) * 0.2;
+    const slopeFactor = 1 + Math.abs(slope) * 45;
     //const slopeFactor = 1 + Math.abs(slope) * 1 * (currentElevation * 20);//0.2;
 
     const speedMultiplier = mapNumber(Math.abs(slope), 0, 10, 1, 0.01);
@@ -374,7 +374,7 @@ interface unitBasicInfo {
 
 const UnitStatMap: Record<UnitType, UnitStats> = {
   [UnitType.hq]: { maxHP: 1000, speed: 0, fuel: 0 },
-  [UnitType.infantry]: { maxHP: 100, speed: 1, fuel: 100 },
+  [UnitType.infantry]: { maxHP: 100, speed: 5, fuel: 100 },
   [UnitType.air]: { maxHP: 200, speed: 3, fuel: 80 },
   [UnitType.tank]: { maxHP: 500, speed: 0.3, fuel: 180 },
 };
