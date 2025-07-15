@@ -27,11 +27,11 @@ export async function triggerLLMMove(mainScene: MainScene, numTestMoves: number 
   // Retrieve the unit manager for executing moves later
   const unitManager = mainScene.getUnitManager();
   // Retrieve the elevation map data (2D array of numbers)
-  const elevationMapInfo = mainScene.getElevationMapInfo();
+  const elevationMapInfo = mainScene.getElevationMapSummary(10);//mainScene.getElevationMapInfo();
 
   console.log("🔎 unitPoslist:", units);
   console.log("🔎 unitManager:", unitManager);
-  console.log("🔎 elevationMapInfo (first 5 rows):", elevationMapInfo.slice(0, 5));
+  console.log("🔎 elevationMapInfo (first 5 rows):", elevationMapInfo.slice);
 
   // Basic validation to ensure essential data is available
   if (!Array.isArray(units)) {
@@ -87,7 +87,7 @@ export async function triggerLLMMove(mainScene: MainScene, numTestMoves: number 
     // Make a POST request to your Colab-hosted Flask backend.
     // IMPORTANT: Replace "YOUR_NGROK_URL" with the actual public URL
     // printed in your Colab notebook after starting Ngrok.
-    const response = await fetch("https://78dc887b0775.ngrok-free.app/llm/move", { // <--- UPDATE THIS LINE WITH YOUR NGROK URL
+    const response = await fetch("https://91d01f5a153f.ngrok-free.app/llm/move", { // <--- UPDATE THIS LINE WITH YOUR NGROK URL
       method: "POST",
       headers: { "Content-Type": "application/json" },
       // Send the current units data, the instruction, the elevation map info,

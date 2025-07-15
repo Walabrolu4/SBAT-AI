@@ -83,6 +83,11 @@ export class MainScene extends Phaser.Scene {
     this.unitPosList = this.gameState.getAllUnitData(this.unitManager.getAllUnits());
     console.log('MainScene instance:', (window as any).mainScene);
 
+    const chunkSize = 10;
+    const strategicMap = this.elevationMap.createCostSummaryMap(chunkSize);
+    console.log("STRATEGIC");
+    console.log(strategicMap.length);
+    console.log(strategicMap);
 
     triggerLLMMove(this);
     //this.time.delayedCall(7000, () => {
@@ -98,6 +103,9 @@ export class MainScene extends Phaser.Scene {
 
   public getElevationMapInfo(): number[][] {
     return this.elevationMapInfo;
+  }  
+  public getElevationMapSummary(chunkSize : number): number[][] {
+    return this.elevationMap.createCostSummaryMap(chunkSize);
   }
 
   public getUnitPosList(): UnitData[] {
