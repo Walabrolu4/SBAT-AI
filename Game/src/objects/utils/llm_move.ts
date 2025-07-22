@@ -63,9 +63,10 @@ export async function triggerLLMMove(mainScene: MainScene, numTestMoves: number 
 
       // Clear existing queue and add the first waypoint (assuming it's a new plan)
       unit.queueMoveToLocation(new Phaser.Math.Vector2(path[0].x, path[0].y), true);
-
+      console.log(`path length = ${path.length}`);
       // Add subsequent waypoints to the queue
       for (let i = 1; i < path.length; i++) {
+        console.log(`path ${i} is point (${path[i].x},${path[i].y}`);
         unit.queueMoveToLocation(new Phaser.Math.Vector2(path[i].x, path[i].y), false);
       }
       console.log(`🚀 Unit ${unitId} received and queued path with ${path.length} waypoints.`);
@@ -75,8 +76,8 @@ export async function triggerLLMMove(mainScene: MainScene, numTestMoves: number 
   // The instruction for the LLM. This will be critical for guiding its pathfinding logic.
   // This instruction aligns with the prompt we built in the Colab notebook.
   const instruction = `
-    For each unit, generate ${numTestMoves} distinct potential movement paths (sequences of waypoints) Towards (500,500)
-    Each path should consist of 1 to 5 waypoints.
+    For each unit, generate ${numTestMoves} distinct potential movement paths (sequences of waypoints) Towards (450,541)
+    Each path should consist of 5 waypoints.
     For each generated path, estimate its total fuel cost by considering the elevation changes between consecutive waypoints.
     The fuel cost increases significantly with the absolute difference in elevation between adjacent points.
     After evaluating all ${numTestMoves} paths for a unit, select the path that has the lowest estimated fuel consumption.
@@ -87,7 +88,7 @@ export async function triggerLLMMove(mainScene: MainScene, numTestMoves: number 
     // Make a POST request to your Colab-hosted Flask backend.
     // IMPORTANT: Replace "YOUR_NGROK_URL" with the actual public URL
     // printed in your Colab notebook after starting Ngrok.
-    const response = await fetch("https://91d01f5a153f.ngrok-free.app/llm/move", { // <--- UPDATE THIS LINE WITH YOUR NGROK URL
+    const response = await fetch("https://c77ec0a170ca.ngrok-free.app/llm/move", { // <--- UPDATE THIS LINE WITH YOUR NGROK URL
       method: "POST",
       headers: { "Content-Type": "application/json" },
       // Send the current units data, the instruction, the elevation map info,
