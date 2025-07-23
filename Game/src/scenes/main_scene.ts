@@ -8,6 +8,9 @@ import { UnitManager } from '../objects/unit_manager';
 import { GameState } from '../objects/utils/game_state';
 import { UnitData } from '../objects/utils/utils';
 import { triggerLLMMove } from '../objects/utils/llm_move';
+import { findBestPath } from '../objects/utils/fuel_optimizer';
+import { findFuelOptimalPath } from "../objects/utils/fuel_pathfinder";
+
 
 type Vector2 = Phaser.Math.Vector2;
 const Vector2 = Phaser.Math.Vector2;
@@ -89,7 +92,9 @@ export class MainScene extends Phaser.Scene {
     console.log(strategicMap.length);
     console.log(strategicMap);
 
-    triggerLLMMove(this);
+    
+    triggerLocalOptimalMove(this);
+    //triggerLLMMove(this);
     //this.time.delayedCall(7000, () => {
     //  triggerLLMMove();
     //}, [], this);
@@ -115,4 +120,37 @@ export class MainScene extends Phaser.Scene {
   public getUnitManager(): UnitManager {
     return this.unitManager;
   }
+
+  public getElevationMap(): ElevationMap{
+    return this.elevationMap
+  }
+  
 }
+
+
+export function triggerLocalOptimalMove(mainScene: MainScene) {
+  const unitManager = mainScene.getUnitManager();
+  const units = unitManager.getAllUnits();
+  const elevationMap = mainScene.getElevationMap();
+  const target = new Phaser.Math.Vector2(450, 541);
+
+  for (const unit of units) {
+    if (unit != units[0])
+    {
+      continue;
+    }
+    const start = unit.getPos();
+    const path = findFuelOptimalPath(elevationMap, start, target);
+
+    for (let i = 0; i < path.length; i++) {
+      unit.queueMoveToLocation(path[i], i === 0); // Clear queue only on first
+    }
+    console.log(`🚀 Starting path from (${start.x}, ${start.y}) to (${target.x}, ${target.y})`);
+    console.log(`🧮 Optimal path for ${unit.getName()}:`, path.map(p => `(${p.x},${p.y})`).join(" -> "));
+  }
+}
+
+
+
+
+

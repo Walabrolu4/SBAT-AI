@@ -12,10 +12,12 @@ export class ElevationMap extends Phaser.GameObjects.Image {
   }
 
   public getElevation(x: number, y: number): number {
-    if (x < 0 || y < 0 || x >= this.width || y >= this.height) return -99;
+    const px = Math.floor(x);
+    const py = Math.floor(y);
+    if (px < 0 || py < 0 || px >= this.width || py >= this.height) return -99;
 
     const textureManager = this.scene.textures;
-    const pixel = textureManager.getPixel(x,y,this.key);
+    const pixel = textureManager.getPixel(px,py,this.key);
 
     if (!pixel){
       return -99;

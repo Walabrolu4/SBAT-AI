@@ -88,7 +88,7 @@ export async function triggerLLMMove(mainScene: MainScene, numTestMoves: number 
     // Make a POST request to your Colab-hosted Flask backend.
     // IMPORTANT: Replace "YOUR_NGROK_URL" with the actual public URL
     // printed in your Colab notebook after starting Ngrok.
-    const response = await fetch("https://c77ec0a170ca.ngrok-free.app/llm/move", { // <--- UPDATE THIS LINE WITH YOUR NGROK URL
+    const response = await fetch("https://e0777cff4c1b.ngrok-free.app/llm/move", { // <--- UPDATE THIS LINE WITH YOUR NGROK URL
       method: "POST",
       headers: { "Content-Type": "application/json" },
       // Send the current units data, the instruction, the elevation map info,
