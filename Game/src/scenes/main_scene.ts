@@ -140,7 +140,7 @@ export function triggerLocalOptimalMove(mainScene: MainScene) {
       continue;
     }
     const start = unit.getPos();
-    const path = findFuelOptimalPath(elevationMap, start, target);
+    const path = findFuelOptimalPath(elevationMap, start, target,unit);
 
     for (let i = 0; i < path.length; i++) {
       unit.queueMoveToLocation(path[i], i === 0); // Clear queue only on first

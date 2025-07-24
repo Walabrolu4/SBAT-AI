@@ -1,5 +1,6 @@
 import { ElevationMap } from "../elevation_map";
 import Phaser from "phaser";
+import { Unit } from "../unit";
 
 const Vec2 = Phaser.Math.Vector2;
 
@@ -17,7 +18,7 @@ function heuristic(a: Phaser.Math.Vector2, b: Phaser.Math.Vector2): number {
 
 function getNeighbors(
   pos: Phaser.Math.Vector2,
-  step = 5
+  step = 1
 ): Phaser.Math.Vector2[] {
   return [
     new Vec2(pos.x + step, pos.y),
@@ -35,6 +36,7 @@ export function findFuelOptimalPath(
   elevationMap: ElevationMap,
   start: Phaser.Math.Vector2,
   goal: Phaser.Math.Vector2,
+  unit: Unit,
   maxIterations = 100000
 ): Phaser.Math.Vector2[] {
   const open: Node[] = [];
@@ -116,11 +118,17 @@ export function findFuelOptimalPath(
       const slope = nextElev - curElev;
       const slopeFactor = 1 + Math.abs(slope) * 0.2;
       const distance = current.pos.distance(neighbor);
-      const fuelCost = distance * slopeFactor;
+      //const fuelCost = distance * slopeFactor;
+      const fuelCost = estimateFuelBetweenPoints(
+        unit,
+        current.pos,
+        neighbor,
+        elevationMap
+      );
 
       const g = current.g + fuelCost;
       const h = heuristic(neighbor, goal);
-      const f = g;
+      const f = g + h * 0.05;
 
       open.push({
         pos: neighbor.clone(),
@@ -156,4 +164,43 @@ export function findFuelOptimalPath(
   }
   return partialPath;
   //return []; // Failed to find path
+}
+
+function estimateFuelBetweenPoints(
+  unit: Unit,
+  from: Phaser.Math.Vector2,
+  to: Phaser.Math.Vector2,
+  elevationMap: ElevationMap
+): number {
+  const direction = to.clone().subtract(from);
+  const distance = direction.length();
+
+  if (distance === 0) return 0;
+
+  direction.normalize();
+  const baseFuelConsumption = 0.1;
+  const baseSpeed = unit.getStats().speed;
+
+  let totalFuel = 0;
+  const steps = Math.ceil(distance);
+  let simPos = from.clone();
+
+  for (let i = 0; i < steps; i++) {
+    const nextPos = simPos.clone().add(direction);
+
+    const curElev = elevationMap.getElevation(simPos.x, simPos.y);
+    const nextElev = elevationMap.getElevation(nextPos.x, nextPos.y);
+    const slope = nextElev - curElev;
+    const slopeFactor = 1 + Math.abs(slope) * 0.2;
+
+    const moveDistance = 1;
+    const moveDelta = direction.clone().scale(moveDistance);
+
+    const fuelUsed = baseFuelConsumption * moveDelta.length() * slopeFactor;
+    totalFuel += fuelUsed;
+
+    simPos.add(moveDelta);
+  }
+
+  return totalFuel;
 }

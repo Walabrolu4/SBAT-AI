@@ -340,6 +340,11 @@ export class Unit extends Phaser.GameObjects.Container {
 
     return totalFuel;
   }
+
+  public getStats() : UnitStats
+  {
+    return this.stats
+  }
 }
 
 //---------------------------------------//
