@@ -16,7 +16,7 @@ function heuristic(a: Phaser.Math.Vector2, b: Phaser.Math.Vector2): number {
   return Phaser.Math.Distance.Between(a.x, a.y, b.x, b.y);
 }
 
-function getNeighbors(
+/*function getNeighbors(
   pos: Phaser.Math.Vector2,
   step = 1
 ): Phaser.Math.Vector2[] {
@@ -30,7 +30,31 @@ function getNeighbors(
     new Vec2(pos.x + step, pos.y - step),
     new Vec2(pos.x - step, pos.y + step),
   ];
+}*/
+
+function getNeighbors(
+  pos: Phaser.Math.Vector2,
+  step = 10,
+  directions = 15
+): Phaser.Math.Vector2[] {
+  const neighbors: Phaser.Math.Vector2[] = [];
+
+  for (let i = 0; i < directions; i++) {
+    const angle = (i * 360) / directions;
+    const rad = Phaser.Math.DegToRad(angle);
+
+    const dx = Math.round(Math.cos(rad) * step);
+    const dy = Math.round(Math.sin(rad) * step);
+
+    // Avoid duplicate center point when angle rounds to (0, 0)
+    if (dx !== 0 || dy !== 0) {
+      neighbors.push(new Vec2(pos.x + dx, pos.y + dy));
+    }
+  }
+
+  return neighbors;
 }
+
 
 export function findFuelOptimalPath(
   elevationMap: ElevationMap,
@@ -41,7 +65,7 @@ export function findFuelOptimalPath(
 ): Phaser.Math.Vector2[] {
   const open: Node[] = [];
   const closed = new Set<string>();
-  const step = 5;
+  const step = 10;
   start = new Vec2(
     Math.round(start.x / step) * step,
     Math.round(start.y / step) * step
