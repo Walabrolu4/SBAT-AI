@@ -78,6 +78,13 @@ export class UnitManager {
     return this.units;
   }
 
+  public getUnitById(id:number): Unit | null{
+    if (this.units[id]){
+    return this.units[id];
+    }
+    return null;
+  }
+
   public moveUnitTo(unitId:number, x:number,y:number){
     const unitToMove = this.units.find((unit: Unit) => unit.getId() === unitId);
     if (unitToMove == undefined){console.log(`No unit with id ${unitId} is found`); return;}
