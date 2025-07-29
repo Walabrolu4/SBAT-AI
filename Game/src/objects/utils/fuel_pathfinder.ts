@@ -3,69 +3,49 @@ import Phaser from "phaser";
 import { Unit } from "../unit";
 
 const Vec2 = Phaser.Math.Vector2;
+type Vec2 = Phaser.Math.Vector2;
 
 interface Node {
   pos: Phaser.Math.Vector2;
-  g: number; // fuel cost from start
-  h: number; // heuristic (distance to goal)
-  f: number; // g + h
+  g: number;
+  h: number;
+  f: number;
   parent?: Node;
 }
 
-function heuristic(a: Phaser.Math.Vector2, b: Phaser.Math.Vector2): number {
+function heuristic(a: Vec2, b: Vec2): number {
   return Phaser.Math.Distance.Between(a.x, a.y, b.x, b.y);
 }
 
-/*function getNeighbors(
-  pos: Phaser.Math.Vector2,
-  step = 1
-): Phaser.Math.Vector2[] {
-  return [
-    new Vec2(pos.x + step, pos.y),
-    new Vec2(pos.x - step, pos.y),
-    new Vec2(pos.x, pos.y + step),
-    new Vec2(pos.x, pos.y - step),
-    new Vec2(pos.x + step, pos.y + step),
-    new Vec2(pos.x - step, pos.y - step),
-    new Vec2(pos.x + step, pos.y - step),
-    new Vec2(pos.x - step, pos.y + step),
-  ];
-}*/
-
-function getNeighbors(
-  pos: Phaser.Math.Vector2,
-  step = 10,
-  directions = 8
-): Phaser.Math.Vector2[] {
-  const neighbors: Phaser.Math.Vector2[] = [];
-
-  for (let i = 0; i < directions; i++) {
-    const angle = (i * 360) / directions;
-    const rad = Phaser.Math.DegToRad(angle);
-
-    const dx = Math.round(Math.cos(rad) * step);
-    const dy = Math.round(Math.sin(rad) * step);
-
-    // Avoid duplicate center point when angle rounds to (0, 0)
-    if (dx !== 0 || dy !== 0) {
-      neighbors.push(new Vec2(pos.x + dx, pos.y + dy));
-    }
-  }
-
-  return neighbors;
+function toKey(vec: Vec2): string {
+  return `${Math.round(vec.x)},${Math.round(vec.y)}`;
 }
 
+function getNeighbors(pos: Vec2, step = 10): Vec2[] {
+  const dirs = [
+    [1, 0],
+    [-1, 0],
+    [0, 1],
+    [0, -1],
+    [1, 1],
+    [-1, -1],
+    [1, -1],
+    [-1, 1],
+  ];
+  return dirs.map(([dx, dy]) => new Vec2(pos.x + dx * step, pos.y + dy * step));
+}
 
 export function findFuelOptimalPath(
   elevationMap: ElevationMap,
-  start: Phaser.Math.Vector2,
-  goal: Phaser.Math.Vector2,
+  start: Vec2,
+  goal: Vec2,
   unit: Unit,
   maxIterations = 100000
-): Phaser.Math.Vector2[] {
+): Vec2[] {
+  const step = 10;
   const open: Node[] = [];
   const closed = new Set<string>();
-  const step = 10;
+
   start = new Vec2(
     Math.round(start.x / step) * step,
     Math.round(start.y / step) * step
@@ -79,7 +59,7 @@ export function findFuelOptimalPath(
     elevationMap.getElevation(start.x, start.y) === -99 ||
     elevationMap.getElevation(goal.x, goal.y) === -99
   ) {
-    console.warn("❌ Start or Goal is outside elevation map bounds.");
+    console.warn("❌ Start or goal is out of bounds.");
     return [];
   }
 
@@ -90,141 +70,63 @@ export function findFuelOptimalPath(
     f: 0,
   };
   startNode.f = startNode.g + startNode.h;
-
   open.push(startNode);
 
   let iterations = 0;
 
   while (open.length > 0 && iterations < maxIterations) {
     iterations++;
-    open.sort((a, b) => a.f - b.f); // sort by lowest f
-    const current = open.shift();
-    if (!current) break;
+    let bestIndex = 0;
+    for (let i = 1; i < open.length; i++) {
+      if (open[i].f < open[bestIndex].f) bestIndex = i;
+    }
+    const current = open.splice(bestIndex, 1)[0];
 
-    const key = `${Math.floor(current.pos.x)},${Math.floor(current.pos.y)}`;
-    if (closed.has(key)) continue;
-    closed.add(key);
+    const currentKey = toKey(current.pos);
+    if (closed.has(currentKey)) continue;
+    closed.add(currentKey);
 
-    if (
-      Phaser.Math.Distance.Between(
-        current.pos.x,
-        current.pos.y,
-        goal.x,
-        goal.y
-      ) <= step
-    ) {
-      // Reached goal!
-      console.log("🏁 Reached goal at:", current.pos);
-      const path: Phaser.Math.Vector2[] = [];
+    if (current.pos.distance(goal) <= step) {
+      const path: Vec2[] = [];
       let node: Node | undefined = current;
       while (node) {
-        path.unshift(node.pos);
+        path.unshift(node.pos.clone());
         node = node.parent;
       }
-      console.log(
-        "✅ Final path:",
-        path.map((p) => `(${p.x}, ${p.y})`).join(" → ")
-      );
       return path;
     }
 
-    const neighbors = getNeighbors(current.pos);
-    for (const neighbor of neighbors) {
-      const nKey = `${Math.floor(neighbor.x)},${Math.floor(neighbor.y)}`;
-      if (closed.has(nKey)) continue;
+    for (const neighbor of getNeighbors(current.pos, step)) {
+      const neighborKey = toKey(neighbor);
+      if (closed.has(neighborKey)) continue;
 
       const curElev = elevationMap.getElevation(current.pos.x, current.pos.y);
       const nextElev = elevationMap.getElevation(neighbor.x, neighbor.y);
-      //console.log(`Checking elevation from (${current.pos.x},${current.pos.y}) = ${curElev} to (${neighbor.x},${neighbor.y}) = ${nextElev}`);
-
-      if (curElev === -99 || nextElev === -99) continue; // out of bounds
+      if (curElev === -99 || nextElev === -99) continue;
 
       const slope = nextElev - curElev;
       const slopeFactor = 1 + Math.abs(slope) * 45;
       const distance = current.pos.distance(neighbor);
-      //const fuelCost = distance * slopeFactor;
-      const fuelCost = estimateFuelBetweenPoints(
-        unit,
-        current.pos,
-        neighbor,
-        elevationMap
-      );
+      const baseFuelConsumption = 0.1;
+      const fuelCost = distance * baseFuelConsumption * slopeFactor;
 
       const g = current.g + fuelCost;
       const h = heuristic(neighbor, goal);
-      const f = g + h * 0.05;
+      const f = g + h; // * 0.05;
 
-      open.push({
-        pos: neighbor.clone(),
-        g,
-        h,
-        f,
-        parent: current,
-      });
-    }
-    if (iterations % 500 === 0) {
-      console.log(`🔁 Iteration ${iterations}, open nodes: ${open.length}`);
+      const existing = open.find((n) => toKey(n.pos) === neighborKey);
+      if (existing && existing.g <= g) continue;
+
+      open.push({ pos: neighbor.clone(), g, h, f, parent: current });
     }
   }
 
-  if (iterations >= maxIterations) {
-    console.warn("🛑 Max iterations reached, path not found.");
-  }
-  if (open.length === 0) {
-    console.warn("🛑 Open list empty, no path to goal.");
-  }
-
-  console.warn("⚠️ Could not reach goal, returning longest explored path.");
-
-  let fallback: Node | undefined = open.reduce(
-    (a, b) => (a.g > b.g ? a : b),
-    open[0]
-  );
-
-  const partialPath: Phaser.Math.Vector2[] = [];
+  console.warn("⚠️ Path not found, returning best effort path.");
+  let fallback = open.reduce((a, b) => (a && a.g > b.g ? a : b), open[0]);
+  const path: Vec2[] = [];
   while (fallback) {
-    partialPath.unshift(fallback.pos.clone());
-    fallback = fallback.parent;
+    path.unshift(fallback.pos.clone());
+    fallback = fallback.parent!;
   }
-  return partialPath;
-  //return []; // Failed to find path
-}
-
-function estimateFuelBetweenPoints(
-  unit: Unit,
-  from: Phaser.Math.Vector2,
-  to: Phaser.Math.Vector2,
-  elevationMap: ElevationMap
-): number {
-  const direction = to.clone().subtract(from);
-  const distance = direction.length();
-
-  if (distance === 0) return 0;
-
-  direction.normalize();
-  const baseFuelConsumption = 0.1;
-  const baseSpeed = unit.getStats().speed;
-
-  let totalFuel = 0;
-  const steps = Math.ceil(distance);
-  let simPos = from.clone();
-
-  for (let i = 0; i < steps; i++) {
-    const nextPos = simPos.clone().add(direction);
-
-    const curElev = elevationMap.getElevation(simPos.x, simPos.y);
-    const nextElev = elevationMap.getElevation(nextPos.x, nextPos.y);
-    const slope = nextElev - curElev;
-    const slopeFactor = 1 + Math.abs(slope) * 0.2;
-
-    const moveDistance = 1;
-    const moveDelta = direction.clone().scale(moveDistance);
-
-    const fuelUsed = baseFuelConsumption * moveDelta.length() * slopeFactor;
-    totalFuel += fuelUsed;
-
-    simPos.add(moveDelta);
-  }
-
-  return totalFuel;
+  return path;
 }
