@@ -93,7 +93,7 @@ export class MainScene extends Phaser.Scene {
     console.log(strategicMap);
 
     
-    //triggerLocalOptimalMove(this);
+    triggerLocalOptimalMove(this);
     //triggerLLMMove(this);
     //this.time.delayedCall(7000, () => {
     //  triggerLLMMove();

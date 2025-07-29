@@ -35,7 +35,7 @@ function heuristic(a: Phaser.Math.Vector2, b: Phaser.Math.Vector2): number {
 function getNeighbors(
   pos: Phaser.Math.Vector2,
   step = 10,
-  directions = 15
+  directions = 8
 ): Phaser.Math.Vector2[] {
   const neighbors: Phaser.Math.Vector2[] = [];
 
@@ -140,7 +140,7 @@ export function findFuelOptimalPath(
       if (curElev === -99 || nextElev === -99) continue; // out of bounds
 
       const slope = nextElev - curElev;
-      const slopeFactor = 1 + Math.abs(slope) * 0.2;
+      const slopeFactor = 1 + Math.abs(slope) * 45;
       const distance = current.pos.distance(neighbor);
       //const fuelCost = distance * slopeFactor;
       const fuelCost = estimateFuelBetweenPoints(
