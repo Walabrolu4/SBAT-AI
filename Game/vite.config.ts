@@ -10,7 +10,7 @@ export default defineConfig({
   },
   server: {
     // Optional: Specify port for the dev server
-    port: 8080,
+    port: 8880,
     // Optional: Automatically open browser when server starts
     open: true
   }

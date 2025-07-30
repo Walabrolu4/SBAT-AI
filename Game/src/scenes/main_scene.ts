@@ -32,8 +32,8 @@ export class MainScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image("backgroundImage", "assets/map_3.png");
-    this.load.image("heightImage", "assets/heightmap_3.png");
+    this.load.image("backgroundImage", "assets/map.png");
+    this.load.image("heightImage", "assets/heightmap.png");
     this.load.image("unit_infantry", "assets/units/infantry.png");
   }
 
@@ -106,40 +106,72 @@ export class MainScene extends Phaser.Scene {
     console.log(strategicMap.length);
     console.log(strategicMap);
 
-    //triggerLocalOptimalMove(this);
-    //triggerLLMMove(this);
-    //this.time.delayedCall(7000, () => {
-    //  triggerLLMMove();
-    //}, [], this);
+    /* TESTING PATHFINDING
+    const unitManager = this.unitManager;
+    const elevationMap = this.elevationMap;
+    if (!unitManager || !elevationMap) {
+      console.error("Missing unit manager or elevation map");
+      return;
+    }
 
+    const unit = unitManager.getUnitById(0);
+    if (!unit) {
+      console.error("Unit 0 not found");
+      return;
+    }
 
-      const unitManager = this.unitManager;
-      const elevationMap = this.elevationMap;
-      if (!unitManager || !elevationMap) {
-        console.error("Missing unit manager or elevation map");
-        return;
-      }
+    const start = unit.getPos();
+    const goal = new Phaser.Math.Vector2(436, 523);
 
-      const unit = unitManager.getUnitById(0);
-      if (!unit) {
-        console.error("Unit 0 not found");
-        return;
-      }
+    const path = findFuelOptimalPath(elevationMap, start, goal, unit);
+
+    console.log("🧭 Path found:", path);
+
+    this.moveUnitAlongPath(unit, path);
+    */
+
+    //EVERT LISTENER FOR TEXT BOX
+    const input = document.getElementById("llm-input") as HTMLInputElement;
+    const submit = document.getElementById("llm-submit") as HTMLButtonElement;
+    submit.addEventListener("click", async () => {
+      const instruction = input.value;
+      console.log("🧠 Instruction sent to LLM:", instruction);
+
+      const response = await fetch("https://e729ff608787.ngrok-free.app/llm/move", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          instruction,
+          gameState: {}, // Optional: can add unit info here later
+          availableActions: [], // Optional
+        }),
+      });
+
+      const data = await response.json();
+      console.log("🤖 LLM response:", data);
+
+      const unitId = data.unitId;
+      const goal = new Phaser.Math.Vector2(data.x, data.y);
+
+      const unit = this.getUnitManager().getUnitById(unitId);
+      if (!unit) return console.warn("❌ Unit not found");
 
       const start = unit.getPos();
-      const goal = new Phaser.Math.Vector2(436, 523);
+      const path = findFuelOptimalPath(
+        this.getElevationMap(),
+        start,
+        goal,
+        unit
+      );
 
-      const path = findFuelOptimalPath(elevationMap, start, goal, unit);
-
-      console.log("🧭 Path found:", path);
-
-      this.moveUnitAlongPath(unit, path);
-
+      this.moveUnitAlongPath(unit, path); // You may already have this function
+    });
   }
 
   moveUnitAlongPath(unit: Unit, path: Phaser.Math.Vector2[]) {
-    for (let i = 0; i < path.length; i++)
-    {
+    for (let i = 0; i < path.length; i++) {
       unit.queueMoveToLocation(path[i]);
     }
   }
